@@ -28,3 +28,6 @@ dev = [
     "respx>=0.23.1",
     "ruff>=0.16.4",
 ]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
