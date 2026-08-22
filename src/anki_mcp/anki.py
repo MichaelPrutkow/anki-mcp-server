@@ -22,7 +22,7 @@ def invoke(action: str, **params: Any):
     except urllib.error.URLError as exc:
         raise Exception(
             f"AnkiConnect does not answer at {ANKI_URL}"
-            "Is Anki running currently, and is there no Dialoguewindow open?"
+            "\nIs Anki running currently, and is there no Dialoguewindow open?"
         ) from exc
     if len(response) != 2:
         raise Exception("response has an unexpected number of fields")

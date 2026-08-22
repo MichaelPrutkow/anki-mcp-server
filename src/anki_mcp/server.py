@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated, Any
 
 from mcp.server import MCPServer
@@ -20,7 +21,7 @@ def list_decks() -> dict[str, int]:
     return invoke("deckNamesAndIds")
 
 
-@mcp.tool(title="Model/Field Names (internal)", annotations=myConsts.READ_ONLY)
+@mcp.tool(title="Model/Field Names", annotations=myConsts.READ_ONLY)
 def describe_note_type(name: str | None = None) -> list[str]:
     """
     Gets the complete list of model names for the current user, if the name is None.
@@ -44,8 +45,6 @@ def create_deck(
     """
     Create a new empty deck. Will not overwrite a deck that exists with the same name.
 
-    Args:
-        Deck Name
     Returns:
         DeckID of the new deck
     """
@@ -87,6 +86,121 @@ def search_notes(
     return SearchResult(
         query=query, total_found=len(ids), note_ids=selected, notes=notes
     )
+
+
+class NoteInput(BaseModel):
+    fields: dict[str, str] = Field(
+        description="Keys must match the note type's field names exactly"
+    )
+    tags: list[str] = Field(default=[], description="Extra tags for this note only")
+
+
+class AddResult(BaseModel):
+    dry_run: bool
+    batch_id: str | None  # None if dry run
+    note_count: int
+    note_ids: list[int] = []  # Empty if dry run
+    failed_indices: list[int] = []  # Empty if dry run
+
+
+@mcp.tool(title="Add Notes", annotations=myConsts.ADDS_NEW)
+def add_notes(
+    deck: str,
+    note_type: str,
+    notes: Annotated[list[NoteInput], Field(min_length=1, max_length=50)],
+    tags: list[str] | None = None,
+    dry_run: bool = True,
+    allow_duplicate: bool = False,
+) -> AddResult:
+    """Adds notes to a single deck using a single note type.
+
+    - dry_run defaults to True: nothing is written, the call only reports wether the
+    notes would be accepted. Show that result to the user and give him a preview of the cards
+    you created in the Chat, then call again with dry_run=False to actually create them.
+
+    - The keys in each note's fields must match the note types's field names. Use
+    'describe_note_type' first if unsure!
+
+    - Every Created note ir tagged 'mcp::batch::<batch_id>'. The returned batch_id can be
+    passed to undo_batch to remove the whole batch again if User is unsatisfied etc.
+    """
+
+    decks = list_decks()
+    if deck not in decks:
+        raise Exception(
+            f"The deck '{deck}' does not exist! \nOnly these Decks currently exist: {list(decks)}"
+        )
+
+    models: list[str] = invoke("modelNames")
+    if note_type not in models:
+        raise Exception(f"Note type '{note_type}' not found. Available: {models}")
+
+    valid: list[str] = invoke("modelFieldNames", modelName=note_type)
+    valid_lower = {v.lower() for v in valid}
+    unknown: dict[str, list[int]] = {}
+    for i, n in enumerate(notes):
+        for field in n.fields:
+            if field.lower() not in valid_lower:
+                unknown.setdefault(field, []).append(i)
+    if unknown:
+        msg1 = ", ".join(
+            [f"Unknown field '{key}' in notes '{val}' " for key, val in unknown.items()]
+        )
+        raise Exception(f"{msg1} \nThe only valid fields currently are: {valid}")
+
+    anki_notes = [
+        {
+            "deckName": deck,
+            "modelName": note_type,
+            "fields": n.fields,
+            "options": {
+                "allowDuplicate": allow_duplicate,
+            },
+            "tags": [*(tags or []), *n.tags],
+        }
+        for n in notes
+    ]
+
+    status_and_details = invoke("canAddNotesWithErrorDetail", notes=anki_notes)
+    errors: dict[str, list[int]] = {}
+    for i, detail in enumerate(status_and_details):
+        if detail["canAdd"]:
+            continue
+        errors.setdefault(detail["error"], []).append(i)
+    if errors:
+        msg2 = ", ".join(
+            [f"Error '{key}' in notes '{val}' " for key, val in errors.items()]
+        )
+        raise Exception(
+            f"{msg2} \nPlease try fixing these Errors, the Errormessages may contain Hints"
+        )
+
+    if dry_run:
+        return AddResult(dry_run=True, batch_id=None, note_count=len(notes))
+
+    batch_id = uuid.uuid4().hex[:8]
+    batch_tags = ["mcp::created", f"mcp::batch::{batch_id}"]
+
+    for an in anki_notes:
+        an["tags"] = [*an["tags"], *batch_tags]
+
+    result: list[int | None] = invoke("addNotes", notes=anki_notes)
+
+    note_ids = [r for r in result if r is not None]
+    failed_indices = [i for i, r in enumerate(result) if r is None]
+
+    return AddResult(
+        dry_run=False,
+        batch_id=batch_id,
+        note_count=len(note_ids),
+        note_ids=note_ids,
+        failed_indices=failed_indices,
+    )
+
+
+def undo_batch():
+    # TODO: implement later
+    pass
 
 
 if __name__ == "__main__":
