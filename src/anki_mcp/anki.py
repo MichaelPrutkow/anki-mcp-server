@@ -33,8 +33,3 @@ def invoke(action: str, **params: Any):
     if response["error"] is not None:
         raise Exception(response["error"])
     return response["result"]
-
-
-invoke("createDeck", deck="test1")
-result = invoke("deckNames")
-print(f"got list of decks: {result}")
