@@ -232,6 +232,18 @@ def update_note_fields(note_id: int, fields: dict[str, str]) -> dict[str, str]:
     return before
 
 
+@mcp.prompt(title="Create Cards from Context")
+def make_cards(source: str, deck: str, tags: str = "") -> str:
+    """Turn lecture material (or other context) into Anki cards following
+    the card-design rules."""
+
+    return (
+        f"{myConsts.CARD_RULES}\n\n"
+        f"<target>\ndeck: {deck} \ntags: {tags or '(none)'}\n<target>\n\n"
+        f"<source>\n{source}\n<source>"
+    )
+
+
 if __name__ == "__main__":
     # mcp.run(transport="stdio")
     res = create_deck("Test::TestSub")
