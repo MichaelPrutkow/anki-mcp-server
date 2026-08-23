@@ -1,2 +1,4 @@
 def main() -> None:
-    print("Hello from anki-mcp!")
+    from anki_mcp.server import mcp
+
+    mcp.run()

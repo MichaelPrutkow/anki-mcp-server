@@ -1,14 +1,25 @@
 [project]
-name = "anki-mcp"
+name = "anki-mcp-server"
 version = "0.1.0"
-description = "Add your description here"
+description = "MCP server for creating and maintaining Anki flashcards from LLMs"
+
+keywords = ["anki", "mcp", "flashcards", "spaced-repetition", "model-context-protocol"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Education",
+]
+
+[project.urls]
+Homepage = "https://github.com/MichaelPrutkow/anki-mcp-server"
+Issues = "https://github.com/MichaelPrutkow/anki-mcp-server/issues"
+
 readme = "README.md"
 authors = [
     { name = "Michael Prutkow", email = "michael.prutkow@tum.de" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
-    "httpx>=0.28.1",
     "mcp>=2,<3",
 ]
 
@@ -22,10 +33,6 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "anyio>=4.14.2",
-    "inline-snapshot>=0.35.4",
-    "mypy>=2.3.1",
-    "pytest>=9.1.1",
-    "respx>=0.23.1",
     "ruff>=0.16.4",
 ]
 

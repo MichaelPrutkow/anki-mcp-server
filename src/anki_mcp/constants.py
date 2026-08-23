@@ -31,17 +31,17 @@ OVERWRITES = ToolAnnotations(
     open_world_hint=False,
 )
 
-ANKI_SEARCH_RULES = """ MUST follow Anki's strict search syntax:
+ANKI_SEARCH_RULES = r""" MUST follow Anki's strict search syntax:
 1. BASIC LOGIC:
 - Space = AND (e.g., 'dog cat' -> contains both)
 - 'or' = OR (e.g., 'dog or cat')
 - '-' = NOT (e.g., '-cat' -> without cat)
 - '(...)' = Grouping (e.g., 'dog (cat or mouse)')
-- '\"...\"' = Exact phrase/spaces (e.g., '\"a dog\"')
+- '"..."' = Exact phrase/spaces (e.g., '"a dog"')
 - '*' = Wildcard (e.g., 'd*g' -> dog, dug, dg...)
 
 2. FIELDS & METADATA:
-- 'deck:Name' or 'deck:Name::Subdeck' (e.g, 'deck:\"French Words\"')
+- 'deck:Name' or 'deck:Name::Subdeck' (e.g, 'deck:"French Words"')
 - 'tag:Name' (e.g, 'tag:animal', 'tag:none' for no tags)
 - 'note:Name' (Filter by Note Type, e.g., 'note:Basic')
 - 'FieldName:Text' (e.g., 'Front:dog') CRITICAL: Field searches require EXACT matches! Use wildcards for partial matches (e.g., `Front:*dog*`).
@@ -70,7 +70,7 @@ theoretical computer science, usually in German and/or English. However you can 
 
 These cards get reviewed for years. A weak card costs more than a missing card: it wastes review time forever and rehearses the wrong thing. Write fewer cards 
 than you are tempted to, but make every single one count!
-<role>
+</role>
 
 <process>
 Follow these steps in this order.
@@ -83,7 +83,7 @@ Skip motivation, history and connecting prose.
 4. Run <self_check> on the draft. Rewrite or delete every card that fails. Deleting is normal and expected.
 5. Call add_notes with dry_run=True. Present the result to the user as a readable list, one card per line, NEVER as raw JSON.
 6. Only after the user approves, call add_notes with dry_run=False, then report the batch_id.
-<process>
+</process>
 
 <rules>
 Write the cards in the language of the source material. Keep mathematical notation in LaTeX

@@ -239,12 +239,6 @@ def make_cards(source: str, deck: str, tags: str = "") -> str:
 
     return (
         f"{myConsts.CARD_RULES}\n\n"
-        f"<target>\ndeck: {deck} \ntags: {tags or '(none)'}\n<target>\n\n"
-        f"<source>\n{source}\n<source>"
+        f"<target>\ndeck: {deck} \ntags: {tags or '(none)'}\n</target>\n\n"
+        f"<source>\n{source}\n</source>"
     )
-
-
-if __name__ == "__main__":
-    # mcp.run(transport="stdio")
-    res = create_deck("Test::TestSub")
-    print(f"deck creatio successfull, new Deck has ID: {res}")
